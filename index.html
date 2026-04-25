@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>职场差距漫画墙 | 便签贴·性别观察</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #2b2b1f;
+            font-family: 'Comic Neue', 'Comic Neue', 'Chalkboard SE', 'Segoe UI Emoji', 'Comic Sans MS', 'cursive', sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 主容器 */
+        .comic-container {
+            max-width: 1300px;
+            width: 100%;
+            background: #3a2e24;
+            border-radius: 48px 48px 32px 32px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,200,0.2);
+            padding: 20px 25px 35px;
+            position: relative;
+            border: 3px solid #f3e3b0;
+        }
+
+        /* 黑板区域 (便签墙) */
+        .blackboard {
+            background: #1f2a1b;
+            background-image: radial-gradient(circle at 15% 30%, rgba(80,70,40,0.2) 2%, transparent 2.5%),
+                              radial-gradient(circle at 75% 85%, rgba(60,70,30,0.2) 1.8%, transparent 2%);
+            background-size: 35px 35px, 28px 28px;
+            border-radius: 28px;
+            padding: 30px 20px 25px;
+            box-shadow: inset 0 0 0 4px #5c4a2e, inset 0 0 0 8px #3e2e1b, 0 12px 25px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
+            border: 2px solid #efd289;
+            position: relative;
+        }
+
+        /* 黑板顶部粉笔字 */
+        .chalk-title {
+            text-align: center;
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: #f9eec1;
+            text-shadow: 3px 3px 0 #6b4c2c;
+            letter-spacing: 2px;
+            margin-top: -15px;
+            margin-bottom: 25px;
+            font-family: 'Comic Neue', 'Chalkboard SE', cursive;
+            background: rgba(0,0,0,0.3);
+            display: inline-block;
+            width: 100%;
+        }
+        .chalk-title span {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ffde9e" width="28px" height="28px"><path d="M12 2L15 8.5L22 9.5L17 14L18.5 21L12 17.5L5.5 21L7 14L2 9.5L9 8.5L12 2z"/></svg>') no-repeat center;
+            background-size: contain;
+            display: inline-block;
+            width: 38px;
+            height: 38px;
+            vertical-align: middle;
+            margin: 0 8px;
+        }
+
+        /* 便签网格墙 */
+        .sticky-wall {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 270px));
+            gap: 28px;
+            justify-content: center;
+            align-items: start;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 单个便签漫画卡片 */
+        .sticky-note {
+            background: #fffbe6;
+            padding: 18px 14px 14px;
+            border-radius: 14px 3px 18px 8px;
+            box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2), 3px 3px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            transform: rotate(var(--rot, 0deg));
+            position: relative;
+            backdrop-filter: blur(0px);
+            border-bottom: 2px solid #ffe1a0;
+            border-right: 2px solid #eac880;
+            font-family: 'Comic Neue', 'Comic Sans MS', cursive;
+        }
+        /* 随机旋转和不同底色在js里动态分配，这里备用变量 */
+        .sticky-note:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow: 10px 12px 0 rgba(0, 0, 0, 0.25);
+            z-index: 20;
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1.5px dashed #ffc285;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+        }
+        .nickname {
+            font-weight: bold;
+            font-size: 0.9rem;
+            background: rgba(0,0,0,0.05);
+            padding: 2px 8px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        .note-time {
+            font-size: 0.65rem;
+            color: #aa7e54;
+        }
+        .note-content {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            word-break: break-word;
+            white-space: pre-wrap;
+            color: #2d2a1c;
+            margin: 12px 0 8px;
+            min-height: 70px;
+        }
+        .note-footer {
+            font-size: 0.7rem;
+            text-align: right;
+            border-top: 1px dashed #ffd89a;
+            padding-top: 6px;
+            margin-top: 5px;
+            color: #bb914c;
+        }
+        /* 漫画小元素 */
+        .pushpin {
+            position: absolute;
+            top: -12px;
+            left: 15px;
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle, #ff8070, #c1402a);
+            border-radius: 50%;
+            box-shadow: 0 2px 4px black;
+            z-index: 3;
+        }
+        .pushpin::after {
+            content: "";
+            position: absolute;
+            top: 8px;
+            left: 9px;
+            width: 6px;
+            height: 12px;
+            background: #9e6b4b;
+            transform: rotate(45deg);
+        }
+
+        /* 便签输入区 — 漫画对话框风格 */
+        .comic-form-area {
+            background: #fef0cf;
+            border-radius: 60px 60px 40px 40px;
+            padding: 20px 25px 28px;
+            margin-top: 15px;
+            border: 3px solid #e2bc7c;
+            box-shadow: 0 10px 0 #9b6e3e;
+            position: relative;
+        }
+        .speech-bubble {
+            background: white;
+            padding: 12px 24px;
+            border-radius: 35px 35px 35px 15px;
+            display: inline-block;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border: 2px solid #c6944a;
+            box-shadow: 3px 3px 0 #ccaa73;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 140px;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+            color: #78481e;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 30px;
+            border: 2px solid #eac48a;
+            background: #fffcf0;
+            font-family: 'Comic Neue', monospace;
+            font-size: 0.9rem;
+            transition: 0.1s;
+        }
+        textarea {
+            border-radius: 28px;
+            resize: vertical;
+        }
+        input:focus, textarea:focus {
+            border-color: #ffa047;
+            outline: none;
+            background: #fffff2;
+        }
+        .send-btn {
+            background: #ffba7a;
+            border: none;
+            padding: 12px 32px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 40px;
+            font-family: 'Comic Neue', cursive;
+            color: #402812;
+            cursor: pointer;
+            transition: 0.1s linear;
+            box-shadow: 0 5px 0 #a05e2c;
+            transform: translateY(-2px);
+        }
+        .send-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #a05e2c;
+        }
+        .char-counter {
+            text-align: right;
+            font-size: 0.7rem;
+            color: #aa7a44;
+        }
+        .info-note {
+            background: #ffe6b3;
+            margin-top: 20px;
+            border-radius: 24px;
+            padding: 10px 18px;
+            font-size: 0.75rem;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-wall {
+            text-align: center;
+            padding: 50px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 40px;
+            color: #fbd68f;
+            font-size: 1.3rem;
+            font-style: italic;
+        }
+        /* 模态框查看详情 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-card {
+            background: #fff7e8;
+            max-width: 500px;
+            width: 85%;
+            padding: 25px;
+            border-radius: 42px 18px 42px 18px;
+            transform: rotate(0.5deg);
+            border: 5px solid #ffce8e;
+            position: relative;
+            font-family: 'Comic Neue', cursive;
+            box-shadow: 15px 20px 0 rgba(0,0,0,0.3);
+        }
+        .modal-card h3 {
+            font-size: 1.7rem;
+            border-left: 12px solid #ffae5a;
+            padding-left: 12px;
+        }
+        .modal-full-content {
+            background: #fff2db;
+            margin: 20px 0;
+            padding: 18px;
+            border-radius: 28px;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+        .close-modal {
+            background: #ffb45e;
+            border: none;
+            float: right;
+            font-size: 1.5rem;
+            width: 40px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #eecb90;
+        }
+        @media (max-width: 650px) {
+            .comic-container {
+                padding: 12px;
+            }
+            .sticky-wall {
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+            .chalk-title {
+                font-size: 1.6rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .sticky-wall {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="comic-container">
+    <!-- 黑板背景便签墙区域 -->
+    <div class="blackboard">
+        <div class="chalk-title">
+            <span></span>  ✏️ 职·场·差·距·真·实·贴 ✏️ <span></span>
+        </div>
+        <div id="stickyWallContainer" class="sticky-wall">
+            <!-- 动态便签列表 -->
+            <div class="empty-wall">✨ 扫扫二维码 · 写下你的观察 ✨<br>📌 第一张贴纸等你来贴~</div>
+        </div>
+    </div>
+
+    <!-- 漫画风格表单 (留言便签提交) -->
+    <div class="comic-form-area">
+        <div class="speech-bubble">
+            🎨 漫画便签 · 写出你经历的「职场性别差距」
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>🧸 昵称 (或匿名)</label>
+                <input type="text" id="nicknameInput" placeholder="职场漫画人 / 匿名" maxlength="16" value="职场小画师">
+            </div>
+            <div class="form-group">
+                <label>🎨 头像色调 (趣味)</label>
+                <select id="themeColorSelect">
+                    <option value="#FFF7C0">🍋 柠檬黄</option>
+                    <option value="#FFD9B5">🍑 蜜桃粉</option>
+                    <option value="#C9F0E3">🌿 薄荷绿</option>
+                    <option value="#FADADD">🌸 樱花粉</option>
+                    <option value="#D4E0FF">💙 天空蓝</option>
+                    <option value="#FFE0A3">🧡 奶油橘</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <label>📝 你的真实职场观察 (简练分享20~200字)</label>
+            <textarea id="gapContent" rows="3" placeholder="例子：我所在的互联网公司，同是项目负责人，男同事的失误容易被包容，女同事却常被质疑能力... 你的故事很重要。"></textarea>
+            <div class="char-counter"><span id="charCount">0</span>/200</div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+            <button class="send-btn" id="submitNoteBtn">✏️ 贴到黑板上！ ➔</button>
+        </div>
+        <div class="info-note">
+            💡 点击任意便签可查看完整经历｜匿名分享｜友善交流，看见差距为了更平等
+        </div>
+    </div>
+    <footer>⚡ 扫二维码进入漫画墙 · 每一张贴纸都是真实职场回响 ⚡</footer>
+</div>
+
+<!-- 模态框 查看详情 -->
+<div id="detailModal" class="modal">
+    <div class="modal-card">
+        <button class="close-modal" id="closeModalBtn">✖</button>
+        <h3>📌 职场真实贴</h3>
+        <div id="modalContentArea" class="modal-full-content">
+            加载中...
+        </div>
+        <div style="font-size:0.8rem; text-align:right;">— 来自便签墙 —</div>
+    </div>
+</div>
+
+<script>
+    // ---------- 存储key (localStorage模拟后端，保留所有人看到的便签墙) ----------
+    const STORAGE_KEY = "comic_gender_gap_notes";
+    // 初始化样例数据（为了让人进来不会空墙，并展示真实的职场差距案例）
+    let sampleNotes = [
+        {
+            id: "sample1",
+            nickname: "市场部小林",
+            content: "和男同事一起竞聘主管，我的业绩更好，领导却说‘女生不适合长期应酬’，最后选了业绩一般的男同事。",
+            color: "#FFD9B5",
+            time: "2026-04-20 14:23",
+            rot: -1.2
+        },
+        {
+            id: "sample2",
+            nickname: "匿名程序员",
+            content: "组里两次晋升机会，男生被辅导写ppt，女生自己摸索。我代码产出前3，但领导说‘女生不够有野心’。",
+            color: "#C9F0E3",
+            time: "2026-04-21 09:15",
+            rot: 1.5
+        },
+        {
+            id: "sample3",
+            nickname: "财务小舟",
+            content: "同样在会议上提建议，男同事被夸‘有想法’，我被质疑‘太情绪化’，内容明明相似。差距藏在日常话语里。",
+            color: "#FADADD",
+            time: "2026-04-22 20:40",
+            rot: -0.8
+        },
+        {
+            id: "sample4",
+            nickname: "广告阿wing",
+            content: "男领导主动带男下属见客户积累资源，女下属只能做后台执行。隐形机会差距最致命。",
+            color: "#FFF7C0",
+            time: "2026-04-23 11:07",
+            rot: 2.1
+        }
+    ];
+
+    // 加载已有数据
+    function loadNotesFromStorage() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                let notes = JSON.parse(stored);
+                // 保证每个note都有rot字段随机风格（但保留原有rot）
+                notes = notes.map(n => {
+                    if (!n.rot) n.rot = (Math.random() * 3 - 1.5).toFixed(1);
+                    if(!n.id) n.id = Date.now() + '-' + Math.random();
+                    return n;
+                });
+                if(notes.length === 0) return [...sampleNotes];
+                return notes;
+            } catch(e) { return [...sampleNotes]; }
+        } else {
+            // 存储初始样本带随机旋转
+            const initNotes = sampleNotes.map(n => ({...n, rot: (Math.random() * 3 - 1.5).toFixed(1)}));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(initNotes));
+            return initNotes;
+        }
+    }
+
+    function saveNotesToStorage(notes) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    }
+
+    let currentNotes = loadNotesFromStorage();
+
+    // 辅助函数 格式化时间
+    function getCurrentTimeStr() {
+        const now = new Date();
+        return `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    }
+
+    // 便签渲染引擎（黑板墙）
+    function renderStickyWall() {
+        const container = document.getElementById('stickyWallContainer');
+        if (!container) return;
+        if (!currentNotes.length) {
+            container.innerHTML = `<div class="empty-wall">✨ 第一张漫画便签等你来贴 ✨<br>写下职场的真实观察吧~</div>`;
+            return;
+        }
+        // 倒序展示最新的在前
+        const sorted = [...currentNotes].reverse();
+        container.innerHTML = '';
+        sorted.forEach(note => {
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'sticky-note';
+            // 根据存储的颜色设定背景，如果没有颜色随机暖色系
+            let bgColor = note.color || ['#FFF7C0','#FFD9B5','#C9F0E3','#FADADD','#D4E0FF','#FFE0A3'][Math.floor(Math.random()*6)];
+            noteDiv.style.backgroundColor = bgColor;
+            const rotVal = note.rot ? parseFloat(note.rot) : (Math.random() * 3 - 1.5);
+            noteDiv.style.setProperty('--rot', `${rotVal}deg`);
+            // 内容截取预览 最多55字
+            let preview = note.content.length > 60 ? note.content.slice(0, 57) + '...' : note.content;
+            // 增加小图钉
+            const pin = document.createElement('div');
+            pin.className = 'pushpin';
+            noteDiv.appendChild(pin);
+            noteDiv.innerHTML += `
+                <div class="note-header">
+                    <span class="nickname">📌 ${escapeHtml(note.nickname || '匿名职场人')}</span>
+                    <span class="note-time">${escapeHtml(note.time || '刚刚')}</span>
+                </div>
+                <div class="note-content">${escapeHtml(preview)}</div>
+                <div class="note-footer">✍️ 点击查看完整经历</div>
+            `;
+            // 存储完整索引并绑定点击事件以模态展示
+            noteDiv.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openModal(note);
+            });
+            container.appendChild(noteDiv);
+        });
+    }
+
+    // 简单防XSS
+    function escapeHtml(str) {
+        if(!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // 模态框显示完整经历
+    let currentModalNote = null;
+    function openModal(note) {
+        const modal = document.getElementById('detailModal');
+        const modalContent = document.getElementById('modalContentArea');
+        if (!modal || !modalContent) return;
+        modalContent.innerHTML = `
+            <div style="margin-bottom:10px"><strong>🧑‍🎤 ${escapeHtml(note.nickname || '匿名朋友')}</strong>  <span style="font-size:0.7rem;">📅 ${escapeHtml(note.time || '未知时间')}</span></div>
+            <div style="background:#fff3e0; padding:12px; border-radius:24px; margin:12px 0;">✨ “${escapeHtml(note.content)}”</div>
+            <div style="font-size:0.8rem;">💬 职场的真实观察，让改变发生</div>
+        `;
+        modal.style.display = 'flex';
+        currentModalNote = note;
+    }
+    function closeModal() {
+        const modal = document.getElementById('detailModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    // 提交新的便签
+    function addNewNote() {
+        const nicknameInput = document.getElementById('nicknameInput');
+        const contentTextarea = document.getElementById('gapContent');
+        const colorSelect = document.getElementById('themeColorSelect');
+        let nickname = nicknameInput.value.trim();
+        if (nickname === "") nickname = "漫画路人";
+        if (nickname.length > 16) nickname = nickname.slice(0,16);
+        let content = contentTextarea.value.trim();
+        if (content === "") {
+            alert("🎭 写下一段真实的职场观察吧！便签需要故事～");
+            return;
+        }
+        if (content.length > 200) {
+            alert("便签内容最多200字，漫画风格也要简洁哦～");
+            return;
+        }
+        if (content.length < 5) {
+            alert("再多分享一点点细节吧，让大家都感受到职场经历✨");
+            return;
+        }
+
+        const selectedColor = colorSelect.value;
+        const newId = Date.now() + '-' + Math.random().toString(36);
+        const nowTime = getCurrentTimeStr();
+        // 随机旋转 -2deg 到 2.5deg
+        const rotVal = (Math.random() * 4 - 2).toFixed(1);
+        const newNote = {
+            id: newId,
+            nickname: nickname,
+            content: content,
+            color: selectedColor,
+            time: nowTime,
+            rot: parseFloat(rotVal)
+        };
+        currentNotes.unshift(newNote);   // 最新放最前展示（渲染时会reverse展示，实际方便）
+        // 保留最多80条便签以免数据太大
+        if (currentNotes.length > 100) currentNotes = currentNotes.slice(0, 100);
+        saveNotesToStorage(currentNotes);
+        // 清空输入
+        contentTextarea.value = "";
+        // 保留昵称不清空，但可以重置颜色随便
+        document.getElementById('charCount').innerText = "0";
+        // 重新渲染墙
+        renderStickyWall();
+        // 弹出小庆祝效果（简单alert亦可）
+        alert("✅ 你的漫画便签已钉上黑板！其他人扫码也能看到你的经历～");
+    }
+
+    // 实时字数统计
+    function initCharCounter() {
+        const textarea = document.getElementById('gapContent');
+        const charSpan = document.getElementById('charCount');
+        if (!textarea || !charSpan) return;
+        const update = () => {
+            let len = textarea.value.length;
+            charSpan.innerText = len;
+            if(len > 190) charSpan.style.color = "#d9534f";
+            else charSpan.style.color = "#aa7a44";
+        };
+        textarea.addEventListener('input', update);
+        update();
+    }
+
+    // 黑板随机点缀 - 给已有便签统一旋转维护，无需额外操作
+
+    // 初始化事件 + 额外的交互
+    function bindEvents() {
+        const submitBtn = document.getElementById('submitNoteBtn');
+        if (submitBtn) submitBtn.addEventListener('click', addNewNote);
+        const modalClose = document.getElementById('closeModalBtn');
+        if (modalClose) modalClose.addEventListener('click', closeModal);
+        const modalBg = document.getElementById('detailModal');
+        if (modalBg) modalBg.addEventListener('click', (e) => {
+            if (e.target === modalBg) closeModal();
+        });
+        // 新增按回车快捷提交（Ctrl+Enter）
+        const txtArea = document.getElementById('gapContent');
+        if(txtArea) {
+            txtArea.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    addNewNote();
+                }
+            });
+        }
+    }
+
+    // 兼容手机端滚动
+    function initWallpaper() {
+        renderStickyWall();
+        initCharCounter();
+        bindEvents();
+    }
+
+    // 启动所有
+    initWallpaper();
+</script>
+</body>
+</html>
